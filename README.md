@@ -37,7 +37,9 @@ npm run preview   # просмотр собранной версии
 
 ## Публикация
 
-Workflow `.github/workflows/deploy.yml` собирает сайт и публикует его на GitHub Pages при пуше в `main`. Для этого в настройках репозитория включите **Settings → Pages → Source: GitHub Actions**. Адрес сайта: `https://<пользователь>.github.io/MegaBelSubjectMap/`.
+Сайт публикуется автоматически: при каждом пуше в основную ветку репозитория workflow `.github/workflows/deploy.yml` собирает проект и выкладывает результат в ветку `gh-pages`, откуда его раздаёт GitHub Pages. Запустить деплой вручную можно во вкладке **Actions → Deploy to GitHub Pages → Run workflow**.
+
+Адрес сайта: https://arbuzyakaby.github.io/MegaBelSubjectMap/
 
 ## Стек
 
