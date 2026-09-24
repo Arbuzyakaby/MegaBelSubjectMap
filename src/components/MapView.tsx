@@ -5,6 +5,9 @@ import { heatColor, makeNormalizer, METRIC_BY_KEY, regionsFor, type MetricKey } 
 import { FULL_VIEWBOX, MAP_W, project, SHAPES, viewBoxFor } from '../lib/geo';
 import { useI18n } from '../i18n/I18nProvider';
 import { fmt, fmtCompact } from '../lib/format';
+import { useTheme } from '../lib/theme';
+import { RegionGlyph } from './RegionGlyph';
+import { isLightColor } from '../lib/color';
 
 interface Props {
   metric: MetricKey | null;
@@ -18,6 +21,7 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function MapView({ metric, selected, hovered, onHover, onSelect }: Props) {
   const { l, t } = useI18n();
+  const { theme } = useTheme();
   const reduce = useReducedMotion();
   const wrapRef = useRef<HTMLDivElement>(null);
   const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null);
@@ -31,9 +35,9 @@ export function MapView({ metric, selected, hovered, onHover, onSelect }: Props)
 
   const fillFor = (id: RegionId) => {
     const r = REGION_BY_ID[id];
-    if (!m || !norm) return r.accent;
+    if (!m || !norm) return r.accent[theme];
     if (m.skipCity && r.kind === 'city') return 'var(--map-muted)';
-    return heatColor(norm.t(m.value(r)));
+    return heatColor(norm.t(m.value(r)), theme);
   };
 
   const selectedShape = selected ? SHAPES.find((s) => s.id === selected) : null;
@@ -66,20 +70,9 @@ export function MapView({ metric, selected, hovered, onHover, onSelect }: Props)
         onClick={() => onSelect(null)}
       >
         <defs>
-          <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="10" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
           <filter id="lift" x="-30%" y="-30%" width="160%" height="160%">
-            <feDropShadow dx="0" dy="14" stdDeviation="14" floodColor="#000" floodOpacity="0.55" />
+            <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="#000" floodOpacity="0.35" />
           </filter>
-          <radialGradient id="sheen" cx="35%" cy="25%" r="80%">
-            <stop offset="0%" stopColor="#fff" stopOpacity="0.28" />
-            <stop offset="60%" stopColor="#fff" stopOpacity="0" />
-          </radialGradient>
         </defs>
 
         {/* мягкая «подложка» страны */}
@@ -132,13 +125,6 @@ export function MapView({ metric, selected, hovered, onHover, onSelect }: Props)
           })}
         </g>
 
-        {/* блик по всей стране */}
-        <g aria-hidden pointerEvents="none">
-          {SHAPES.map((s) => (
-            <path key={s.id} d={s.d} fill="url(#sheen)" />
-          ))}
-        </g>
-
         {/* подсветка активного региона поверх остальных */}
         {focusShape && (
           <motion.path
@@ -161,10 +147,9 @@ export function MapView({ metric, selected, hovered, onHover, onSelect }: Props)
             d={SHAPES.find((s) => s.id === topId)!.d}
             className="region-pulse"
             pointerEvents="none"
-            filter="url(#glow)"
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0.15, 0.9, 0.15] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ opacity: [0.25, 0.85, 0.25] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
           />
         )}
 
@@ -179,8 +164,12 @@ export function MapView({ metric, selected, hovered, onHover, onSelect }: Props)
             const [px, py] = project(r.labelAt);
             const [lx, ly] = r.callout ? project(r.callout) : [px, py];
             const value = valueText(s.id);
+            // Подпись Минска стоит на территории Минской области — контраст считаем по ней
+            const under = r.callout ? 'minsk-region' : s.id;
+            const tone = isLightColor(fillFor(under)) ? 'label-on-light' : 'label-on-dark';
             return (
               <motion.g
+                className={tone}
                 key={s.id}
                 initial={reduce ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -193,7 +182,7 @@ export function MapView({ metric, selected, hovered, onHover, onSelect }: Props)
                   </>
                 )}
                 <text x={lx} y={ly} className="label-name" textAnchor="middle">
-                  {r.emoji} {l(r.short)}
+                  {l(r.short)}
                 </text>
                 {value && (
                   <motion.text
@@ -224,7 +213,7 @@ export function MapView({ metric, selected, hovered, onHover, onSelect }: Props)
           }}
         >
           <div className="tooltip-name">
-            <span>{tooltipRegion.emoji}</span> {l(tooltipRegion.name)}
+            <RegionGlyph id={tooltipRegion.id} color={tooltipRegion.accent[theme]} size={18} /> {l(tooltipRegion.name)}
           </div>
           {m ? (
             <div className="tooltip-value">

@@ -3,14 +3,17 @@ import { createRoot } from 'react-dom/client';
 import { MotionConfig } from 'framer-motion';
 import App from './App';
 import { I18nProvider } from './i18n/I18nProvider';
+import { ThemeProvider } from './lib/theme';
 import './styles/global.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MotionConfig reducedMotion="user">
-      <I18nProvider>
-        <App />
-      </I18nProvider>
+      <ThemeProvider>
+        <I18nProvider>
+          <App />
+        </I18nProvider>
+      </ThemeProvider>
     </MotionConfig>
   </StrictMode>,
 );

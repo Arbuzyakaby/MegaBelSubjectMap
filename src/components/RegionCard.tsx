@@ -1,10 +1,13 @@
 import { motion, useReducedMotion, type PanInfo, type Variants } from 'framer-motion';
 import { useEffect, useRef } from 'react';
+import { ArrowLeft, ArrowRight, Camera, Factory, Landmark, X, type LucideIcon } from 'lucide-react';
 import { COUNTRY, REGIONS, SOURCES, type Region } from '../data/regions';
 import { makeNormalizer, METRICS, rankOf, regionsFor, type MetricKey } from '../data/metrics';
 import { useI18n } from '../i18n/I18nProvider';
 import { fmt } from '../lib/format';
 import { AnimatedNumber } from './AnimatedNumber';
+import { RegionGlyph } from './RegionGlyph';
+import { useTheme } from '../lib/theme';
 
 interface Props {
   region: Region;
@@ -27,6 +30,8 @@ const itemVariants: Variants = {
 
 export function RegionCard({ region: r, activeMetric, onClose, onNavigate, isMobile }: Props) {
   const { t, l } = useI18n();
+  const { theme } = useTheme();
+  const accent = r.accent[theme];
   const reduce = useReducedMotion();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +50,7 @@ export function RegionCard({ region: r, activeMetric, onClose, onNavigate, isMob
   return (
     <motion.article
       className="card glass"
-      style={{ ['--accent' as string]: r.accent }}
+      style={{ ['--accent' as string]: accent }}
       initial={isMobile ? { y: '100%' } : { x: 40, opacity: 0 }}
       animate={isMobile ? { y: 0 } : { x: 0, opacity: 1 }}
       exit={isMobile ? { y: '100%' } : { x: 40, opacity: 0 }}
@@ -65,25 +70,29 @@ export function RegionCard({ region: r, activeMetric, onClose, onNavigate, isMob
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="card-nav">
-            <button type="button" className="icon-btn" onClick={() => onNavigate(-1)} aria-label={t.prev}>
-              ←
-            </button>
-            <button type="button" className="icon-btn" onClick={() => onNavigate(1)} aria-label={t.next}>
-              →
-            </button>
-            <button type="button" className="icon-btn" onClick={onClose} aria-label={t.close}>
-              ✕
-            </button>
+          <div className="card-top">
+            <motion.div
+              className="card-art"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <RegionGlyph id={r.id} color={accent} size={60} />
+            </motion.div>
+            <RegionGlyph id={r.id} color={accent} size={60} variant="locator" className="card-locator" />
+            {/* Кнопки в обычном потоке, а не поверх иллюстрации — чтобы ничего не перекрывало клики */}
+            <nav className="card-nav">
+              <button type="button" className="icon-btn" onClick={() => onNavigate(-1)} aria-label={t.prev} title={t.prev}>
+                <ArrowLeft size={17} strokeWidth={1.8} />
+              </button>
+              <button type="button" className="icon-btn" onClick={() => onNavigate(1)} aria-label={t.next} title={t.next}>
+                <ArrowRight size={17} strokeWidth={1.8} />
+              </button>
+              <button type="button" className="icon-btn" onClick={onClose} aria-label={t.close} title={t.close}>
+                <X size={17} strokeWidth={1.8} />
+              </button>
+            </nav>
           </div>
-          <motion.div
-            className="card-emoji"
-            initial={{ scale: 0.4, rotate: -20 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 14 }}
-          >
-            {r.emoji}
-          </motion.div>
           <p className="eyebrow">
             {isCity ? t.kindCity : t.kindOblast} · {l(r.since.label)} {r.since.year} ·{' '}
             {CURRENT_YEAR - r.since.year} {t.yearsAgo}
@@ -115,7 +124,8 @@ export function RegionCard({ region: r, activeMetric, onClose, onNavigate, isMob
                 <div key={m.key} className={`stat${activeMetric === m.key ? ' stat-active' : ''}`}>
                   <div className="stat-top">
                     <span className="stat-label">
-                      {m.icon} {m.key === 'districts' && isCity ? t.cityDistricts : t[m.label]}
+                      <m.icon size={14} strokeWidth={1.8} />
+                      {m.key === 'districts' && isCity ? t.cityDistricts : t[m.label]}
                     </span>
                     {rank && (
                       <span className={`badge${rank === 1 ? ' badge-gold' : ''}`}>
@@ -192,9 +202,9 @@ export function RegionCard({ region: r, activeMetric, onClose, onNavigate, isMob
             </motion.ol>
           </motion.section>
 
-          <ChipBlock title={t.sights} icon="📸" items={r.sights.map(l)} />
-          {r.cities.length > 0 && <ChipBlock title={t.cities} icon="🏙️" items={r.cities.map(l)} />}
-          <ChipBlock title={t.industry} icon="🏭" items={r.industry.map(l)} />
+          <ChipBlock title={t.sights} icon={Camera} items={r.sights.map(l)} />
+          {r.cities.length > 0 && <ChipBlock title={t.cities} icon={Landmark} items={r.cities.map(l)} />}
+          <ChipBlock title={t.industry} icon={Factory} items={r.industry.map(l)} />
 
           <motion.p variants={itemVariants} className="card-source">
             {l(SOURCES.population)} · {l(SOURCES.salary)} · {l(SOURCES.area)}
@@ -205,11 +215,11 @@ export function RegionCard({ region: r, activeMetric, onClose, onNavigate, isMob
   );
 }
 
-function ChipBlock({ title, icon, items }: { title: string; icon: string; items: string[] }) {
+function ChipBlock({ title, icon: Icon, items }: { title: string; icon: LucideIcon; items: string[] }) {
   return (
     <motion.section variants={itemVariants} className="block">
       <h3 className="block-title">
-        {icon} {title}
+        <Icon size={14} strokeWidth={1.8} /> {title}
       </h3>
       <div className="tags">
         {items.map((s) => (

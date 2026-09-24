@@ -1,16 +1,14 @@
 import { motion } from 'framer-motion';
+import { Moon, Sun } from 'lucide-react';
 import { COUNTRY } from '../data/regions';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Lang } from '../i18n/types';
 import { AnimatedNumber } from './AnimatedNumber';
+import { useTheme } from '../lib/theme';
 
-interface Props {
-  theme: 'dark' | 'light';
-  onThemeChange: (t: 'dark' | 'light') => void;
-}
-
-export function Header({ theme, onThemeChange }: Props) {
+export function Header() {
   const { t, lang, setLang } = useI18n();
+  const { theme, setTheme } = useTheme();
   const stats = [
     { label: t.population, value: COUNTRY.population, digits: 0, unit: t.people },
     { label: t.area, value: COUNTRY.area, digits: 0, unit: t.km2 },
@@ -76,12 +74,12 @@ export function Header({ theme, onThemeChange }: Props) {
         <button
           type="button"
           className="icon-btn theme-btn"
-          onClick={() => onThemeChange(theme === 'dark' ? 'light' : 'dark')}
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           aria-label={theme === 'dark' ? t.themeLight : t.themeDark}
           title={theme === 'dark' ? t.themeLight : t.themeDark}
         >
-          <motion.span key={theme} initial={{ rotate: -90, scale: 0.5 }} animate={{ rotate: 0, scale: 1 }}>
-            {theme === 'dark' ? '☀️' : '🌙'}
+          <motion.span key={theme} initial={{ rotate: -60, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} className="theme-icon">
+            {theme === 'dark' ? <Sun size={17} strokeWidth={1.8} /> : <Moon size={17} strokeWidth={1.8} />}
           </motion.span>
         </button>
       </div>

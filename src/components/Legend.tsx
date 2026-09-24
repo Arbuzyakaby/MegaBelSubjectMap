@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { HEAT_STOPS, makeNormalizer, METRIC_BY_KEY, type MetricKey } from '../data/metrics';
+import { heatStops, makeNormalizer, METRIC_BY_KEY, type MetricKey } from '../data/metrics';
 import { useI18n } from '../i18n/I18nProvider';
 import { fmt } from '../lib/format';
+import { useTheme } from '../lib/theme';
 
 export function Legend({ metric }: { metric: MetricKey | null }) {
   const { t } = useI18n();
@@ -26,6 +27,7 @@ export function Legend({ metric }: { metric: MetricKey | null }) {
 
 function LegendBar({ metric }: { metric: MetricKey }) {
   const { t } = useI18n();
+  const { theme } = useTheme();
   const m = METRIC_BY_KEY[metric];
   const { min, max } = makeNormalizer(m);
   const unit = m.unit ? ` ${t[m.unit]}` : '';
@@ -43,7 +45,7 @@ function LegendBar({ metric }: { metric: MetricKey }) {
       </span>
       <motion.span
         className="legend-bar"
-        style={{ background: `linear-gradient(90deg, ${HEAT_STOPS.join(', ')})` }}
+        style={{ background: `linear-gradient(90deg, ${heatStops(theme).join(', ')})` }}
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}

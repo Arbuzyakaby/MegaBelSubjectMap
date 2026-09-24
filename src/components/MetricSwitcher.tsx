@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Layers, type LucideIcon } from 'lucide-react';
 import { METRICS, type MetricKey } from '../data/metrics';
 import { useI18n } from '../i18n/I18nProvider';
 
@@ -9,8 +10,8 @@ interface Props {
 
 export function MetricSwitcher({ value, onChange }: Props) {
   const { t } = useI18n();
-  const items: { key: MetricKey | null; label: string; icon: string }[] = [
-    { key: null, label: t.none, icon: '🎨' },
+  const items: { key: MetricKey | null; label: string; icon: LucideIcon }[] = [
+    { key: null, label: t.none, icon: Layers },
     ...METRICS.map((m) => ({ key: m.key, label: t[m.label], icon: m.icon })),
   ];
 
@@ -36,7 +37,7 @@ export function MetricSwitcher({ value, onChange }: Props) {
                   transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                 />
               )}
-              <span className="chip-icon">{item.icon}</span>
+              <item.icon className="chip-icon" size={15} strokeWidth={1.9} />
               <span className="chip-label">{item.label}</span>
             </button>
           );

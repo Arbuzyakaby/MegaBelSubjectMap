@@ -1,4 +1,5 @@
 import type { L } from '../i18n/types';
+import type { Theme } from '../lib/theme';
 
 export type RegionId =
   | 'brest'
@@ -16,9 +17,9 @@ export interface Region {
   /** Короткое имя для подписей на карте */
   short: L;
   center: L;
-  emoji: string;
-  /** Фирменный цвет региона в режиме «без раскраски» */
-  accent: string;
+  /** Цвет региона в режиме «Регионы»: приглушённые тона, соседние регионы
+   *  различимы в т.ч. при нарушениях цветового зрения (проверено валидатором) */
+  accent: Record<Theme, string>;
   /** Точка подписи на карте [долгота, широта] */
   labelAt: [number, number];
   /** Для маленьких субъектов — подпись выносится в сторону с линией-выноской */
@@ -66,8 +67,7 @@ export const REGIONS: Region[] = [
     name: { ru: 'г. Минск', be: 'г. Мінск' },
     short: { ru: 'Минск', be: 'Мінск' },
     center: { ru: 'Столица Республики Беларусь', be: 'Сталіца Рэспублікі Беларусь' },
-    emoji: '🏙️',
-    accent: '#ff5a7a',
+    accent: { dark: '#c98250', light: '#ca7d44' },
     labelAt: [27.56, 53.9],
     callout: [28.45, 54.2],
     since: { year: 1067, label: { ru: 'первое упоминание', be: 'першая згадка' } },
@@ -138,8 +138,7 @@ export const REGIONS: Region[] = [
     name: { ru: 'Минская область', be: 'Мінская вобласць' },
     short: { ru: 'Минская', be: 'Мінская' },
     center: { ru: 'г. Минск (не входит в состав области)', be: 'г. Мінск (не ўваходзіць у склад вобласці)' },
-    emoji: '⛰️',
-    accent: '#8b7bff',
+    accent: { dark: '#677cc2', light: '#596fbb' },
     labelAt: [27.15, 53.3],
     since: { year: 1938, label: { ru: 'образована', be: 'утворана' } },
     population: 1_454_737,
@@ -215,8 +214,7 @@ export const REGIONS: Region[] = [
     name: { ru: 'Брестская область', be: 'Брэсцкая вобласць' },
     short: { ru: 'Брестская', be: 'Брэсцкая' },
     center: { ru: 'г. Брест', be: 'г. Брэст' },
-    emoji: '🦬',
-    accent: '#3ddc97',
+    accent: { dark: '#7e903e', light: '#728426' },
     labelAt: [25.55, 52.35],
     since: { year: 1939, label: { ru: 'образована', be: 'утворана' } },
     population: 1_290_628,
@@ -285,8 +283,7 @@ export const REGIONS: Region[] = [
     name: { ru: 'Гомельская область', be: 'Гомельская вобласць' },
     short: { ru: 'Гомельская', be: 'Гомельская' },
     center: { ru: 'г. Гомель', be: 'г. Гомель' },
-    emoji: '🛢️',
-    accent: '#ffb547',
+    accent: { dark: '#9f4833', light: '#953922' },
     labelAt: [29.15, 52.35],
     since: { year: 1938, label: { ru: 'образована', be: 'утворана' } },
     population: 1_316_666,
@@ -360,8 +357,7 @@ export const REGIONS: Region[] = [
     name: { ru: 'Витебская область', be: 'Віцебская вобласць' },
     short: { ru: 'Витебская', be: 'Віцебская' },
     center: { ru: 'г. Витебск', be: 'г. Віцебск' },
-    emoji: '🎨',
-    accent: '#4cc9f0',
+    accent: { dark: '#107c5a', light: '#00704e' },
     labelAt: [28.3, 55.15],
     since: { year: 1938, label: { ru: 'образована', be: 'утворана' } },
     population: 1_060_687,
@@ -431,8 +427,7 @@ export const REGIONS: Region[] = [
     name: { ru: 'Гродненская область', be: 'Гродзенская вобласць' },
     short: { ru: 'Гродненская', be: 'Гродзенская' },
     center: { ru: 'г. Гродно', be: 'г. Гродна' },
-    emoji: '🏰',
-    accent: '#f072b6',
+    accent: { dark: '#ce778c', light: '#cf7188' },
     labelAt: [24.95, 53.55],
     since: { year: 1944, label: { ru: 'образована', be: 'утворана' } },
     population: 976_218,
@@ -502,8 +497,7 @@ export const REGIONS: Region[] = [
     name: { ru: 'Могилёвская область', be: 'Магілёўская вобласць' },
     short: { ru: 'Могилёвская', be: 'Магілёўская' },
     center: { ru: 'г. Могилёв', be: 'г. Магілёў' },
-    emoji: '🦫',
-    accent: '#f9844a',
+    accent: { dark: '#b48f3c', light: '#ba9232' },
     labelAt: [30.05, 53.6],
     since: { year: 1938, label: { ru: 'образована', be: 'утворана' } },
     population: 962_053,

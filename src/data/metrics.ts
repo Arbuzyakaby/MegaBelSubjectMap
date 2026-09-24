@@ -1,6 +1,8 @@
 import { scaleLinear, scaleLog } from 'd3-scale';
 import { interpolateRgbBasis } from 'd3-interpolate';
+import { Building2, LandPlot, MapPin, Users, Wallet, Grid3x3, type LucideIcon } from 'lucide-react';
 import type { Strings } from '../i18n/strings';
+import type { Theme } from '../lib/theme';
 import { COUNTRY, REGIONS, type Region } from './regions';
 
 export type MetricKey = 'population' | 'density' | 'area' | 'salary' | 'urbanShare' | 'districts';
@@ -9,7 +11,7 @@ export interface Metric {
   key: MetricKey;
   label: keyof Strings;
   unit?: keyof Strings;
-  icon: string;
+  icon: LucideIcon;
   value: (r: Region) => number;
   country: number;
   /** Сколько знаков после запятой показывать */
@@ -28,7 +30,7 @@ export const METRICS: Metric[] = [
     key: 'population',
     label: 'population',
     unit: 'people',
-    icon: '👥',
+    icon: Users,
     value: (r) => r.population,
     country: COUNTRY.population,
     digits: 0,
@@ -37,7 +39,7 @@ export const METRICS: Metric[] = [
     key: 'density',
     label: 'density',
     unit: 'perKm2',
-    icon: '🏘️',
+    icon: Grid3x3,
     value: density,
     country: density(COUNTRY),
     digits: 1,
@@ -47,7 +49,7 @@ export const METRICS: Metric[] = [
     key: 'area',
     label: 'area',
     unit: 'km2',
-    icon: '🗺️',
+    icon: LandPlot,
     value: (r) => r.area,
     country: COUNTRY.area,
     digits: 0,
@@ -57,7 +59,7 @@ export const METRICS: Metric[] = [
     key: 'salary',
     label: 'salary',
     unit: 'rub',
-    icon: '💰',
+    icon: Wallet,
     value: (r) => r.salary,
     country: COUNTRY.salary,
     digits: 1,
@@ -66,7 +68,7 @@ export const METRICS: Metric[] = [
     key: 'urbanShare',
     label: 'urbanShare',
     unit: 'pct',
-    icon: '🏢',
+    icon: Building2,
     value: urbanShare,
     country: urbanShare(COUNTRY),
     digits: 1,
@@ -74,7 +76,7 @@ export const METRICS: Metric[] = [
   {
     key: 'districts',
     label: 'districts',
-    icon: '📍',
+    icon: MapPin,
     value: (r) => r.districts,
     country: COUNTRY.districts,
     digits: 0,
@@ -84,9 +86,19 @@ export const METRICS: Metric[] = [
 
 export const METRIC_BY_KEY = Object.fromEntries(METRICS.map((m) => [m.key, m])) as Record<MetricKey, Metric>;
 
-/** Тепловая шкала: холодный синий → фиолетовый → янтарный → красный (максимум) */
-const HEAT = interpolateRgbBasis(['#1e3a8a', '#6d28d9', '#db2777', '#f97316', '#ef4444']);
-export const HEAT_STOPS = [0, 0.25, 0.5, 0.75, 1].map((t) => HEAT(t));
+/**
+ * Последовательная шкала одной гаммы (красный): низкие значения почти сливаются
+ * с фоном, максимум — насыщенный красный. Для каждой темы — свои ступени.
+ */
+const HEAT_RAMPS: Record<Theme, string[]> = {
+  dark: ['#2d3240', '#473439', '#6e3a3a', '#9c443c', '#d0553f'],
+  light: ['#ebe4e0', '#e2b9ad', '#cd8170', '#b04c3b', '#88251a'],
+};
+const HEAT: Record<Theme, (t: number) => string> = {
+  dark: interpolateRgbBasis(HEAT_RAMPS.dark),
+  light: interpolateRgbBasis(HEAT_RAMPS.light),
+};
+export const heatStops = (theme: Theme) => HEAT_RAMPS[theme];
 
 export function regionsFor(metric: Metric): Region[] {
   return metric.skipCity ? REGIONS.filter((r) => r.kind !== 'city') : REGIONS;
@@ -102,8 +114,8 @@ export function makeNormalizer(metric: Metric) {
   return { t: (v: number) => s(v), min, max };
 }
 
-export function heatColor(t: number) {
-  return HEAT(t);
+export function heatColor(t: number, theme: Theme) {
+  return HEAT[theme](t);
 }
 
 export function rankOf(metric: Metric, region: Region): number | null {

@@ -9,9 +9,6 @@ import { REGION_ORDER, RegionCard } from './components/RegionCard';
 import { REGION_BY_ID, type RegionId } from './data/regions';
 import type { MetricKey } from './data/metrics';
 import { useI18n } from './i18n/I18nProvider';
-import { readPref, writePref } from './lib/prefs';
-
-type Theme = 'dark' | 'light';
 
 function useIsMobile(query = '(max-width: 1023px)') {
   const [match, setMatch] = useState(() => window.matchMedia(query).matches);
@@ -26,17 +23,11 @@ function useIsMobile(query = '(max-width: 1023px)') {
 
 export default function App() {
   const { t } = useI18n();
-  const [theme, setTheme] = useState<Theme>(() => (readPref('theme') === 'light' ? 'light' : 'dark'));
   const [metric, setMetric] = useState<MetricKey | null>(null);
   const [order, setOrder] = useState<'desc' | 'asc'>('desc');
   const [selected, setSelected] = useState<RegionId | null>(null);
   const [hovered, setHovered] = useState<RegionId | null>(null);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    writePref('theme', theme);
-  }, [theme]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -56,14 +47,9 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="backdrop" aria-hidden>
-        <span className="blob blob-a" />
-        <span className="blob blob-b" />
-        <span className="blob blob-c" />
-        <span className="grid" />
-      </div>
+      <div className="backdrop" aria-hidden />
 
-      <Header theme={theme} onThemeChange={setTheme} />
+      <Header />
 
       <main className="layout">
         <section className="map-panel glass">
