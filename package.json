@@ -1,14 +1,16 @@
 {
   "name": "mega-bel-subject-map",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "build:geo": "node scripts/build-geo.mjs"
+    "build:geo": "node scripts/build-geo.mjs",
+    "gen:districts": "node scripts/gen-districts.mjs",
+    "build:relief": "node scripts/build-relief.mjs"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",
@@ -31,6 +33,7 @@
     "@types/topojson-specification": "^1.0.5",
     "@vitejs/plugin-react": "^6.1.1",
     "mapshaper": "^0.7.67",
+    "sharp": "^0.35.4",
     "typescript": "^5.9.3",
     "vite": "^8.3.1"
   }

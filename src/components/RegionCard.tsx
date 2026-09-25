@@ -1,7 +1,8 @@
 import { motion, useReducedMotion, type PanInfo, type Variants } from 'framer-motion';
 import { useEffect, useRef } from 'react';
-import { ArrowLeft, ArrowRight, Camera, Factory, Landmark, X, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Camera, Factory, Landmark, MapPin, X, type LucideIcon } from 'lucide-react';
 import { COUNTRY, REGIONS, SOURCES, type Region } from '../data/regions';
+import { DISTRICTS } from '../data/districts';
 import { makeNormalizer, METRICS, rankOf, regionsFor, type MetricKey } from '../data/metrics';
 import { useI18n } from '../i18n/I18nProvider';
 import { fmt } from '../lib/format';
@@ -14,6 +15,7 @@ interface Props {
   activeMetric: MetricKey | null;
   onClose: () => void;
   onNavigate: (dir: -1 | 1) => void;
+  onOpenDistrict: (id: string) => void;
   isMobile: boolean;
 }
 
@@ -28,7 +30,7 @@ const itemVariants: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
 };
 
-export function RegionCard({ region: r, activeMetric, onClose, onNavigate, isMobile }: Props) {
+export function RegionCard({ region: r, activeMetric, onClose, onNavigate, onOpenDistrict, isMobile }: Props) {
   const { t, l } = useI18n();
   const { theme } = useTheme();
   const accent = r.accent[theme];
@@ -206,6 +208,23 @@ export function RegionCard({ region: r, activeMetric, onClose, onNavigate, isMob
           {r.cities.length > 0 && <ChipBlock title={t.cities} icon={Landmark} items={r.cities.map(l)} />}
           <ChipBlock title={t.industry} icon={Factory} items={r.industry.map(l)} />
 
+          {!isCity && (
+            <motion.section variants={itemVariants} className="block">
+              <h3 className="block-title">
+                <MapPin size={14} strokeWidth={1.8} /> {t.regionDistricts} · {r.districts}
+              </h3>
+              <div className="tags">
+                {DISTRICTS.filter((d) => d.region === r.id)
+                  .sort((a, b) => l(a.name).localeCompare(l(b.name), 'ru'))
+                  .map((d) => (
+                    <button key={d.id} type="button" className="tag tag-btn" onClick={() => onOpenDistrict(d.id)}>
+                      {l(d.name).split(' ')[0]}
+                    </button>
+                  ))}
+              </div>
+            </motion.section>
+          )}
+
           <motion.p variants={itemVariants} className="card-source">
             {l(SOURCES.population)} · {l(SOURCES.salary)} · {l(SOURCES.area)}
           </motion.p>
@@ -232,7 +251,7 @@ function ChipBlock({ title, icon: Icon, items }: { title: string; icon: LucideIc
   );
 }
 
-function ShareRing({ pct }: { pct: number }) {
+export function ShareRing({ pct }: { pct: number }) {
   const R = 30;
   const C = 2 * Math.PI * R;
   return (

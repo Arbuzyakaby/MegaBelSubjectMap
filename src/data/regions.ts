@@ -58,6 +58,7 @@ export const SOURCES = {
   population: { ru: 'Белстат, на 01.01.2026', be: 'Белстат, на 01.01.2026' },
   salary: { ru: 'Белстат, август 2026', be: 'Белстат, жнівень 2026' },
   area: { ru: 'Официальные данные, км²', be: 'Афіцыйныя даныя, км²' },
+  districts: { ru: 'Районы: население — оценка (≈)', be: 'Раёны: насельніцтва — ацэнка (≈)' },
 } satisfies Record<string, L>;
 
 export const REGIONS: Region[] = [

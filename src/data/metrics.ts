@@ -4,6 +4,7 @@ import { Building2, LandPlot, MapPin, Users, Wallet, Grid3x3, type LucideIcon } 
 import type { Strings } from '../i18n/strings';
 import type { Theme } from '../lib/theme';
 import { COUNTRY, REGIONS, type Region } from './regions';
+import { DISTRICTS, type District } from './districts';
 
 export type MetricKey = 'population' | 'density' | 'area' | 'salary' | 'urbanShare' | 'districts';
 
@@ -104,14 +105,18 @@ export function regionsFor(metric: Metric): Region[] {
   return metric.skipCity ? REGIONS.filter((r) => r.kind !== 'city') : REGIONS;
 }
 
-/** Нормированное значение 0…1 для раскраски */
-export function makeNormalizer(metric: Metric) {
-  const values = regionsFor(metric).map(metric.value);
+/** Нормировка набора значений в 0…1 (линейная или логарифмическая) */
+export function makeScale(values: number[], log = false) {
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const s = metric.log ? scaleLog().domain([min, max]) : scaleLinear().domain([min, max]);
+  const s = log ? scaleLog().domain([min, max]) : scaleLinear().domain([min, max]);
   s.range([0, 1]).clamp(true);
   return { t: (v: number) => s(v), min, max };
+}
+
+/** Нормированное значение 0…1 для раскраски */
+export function makeNormalizer(metric: Metric) {
+  return makeScale(regionsFor(metric).map(metric.value), metric.log);
 }
 
 export function heatColor(t: number, theme: Theme) {
@@ -123,4 +128,43 @@ export function rankOf(metric: Metric, region: Region): number | null {
   // Спортивная нумерация: при равенстве значений — одинаковое место
   const v = metric.value(region);
   return regionsFor(metric).filter((r) => metric.value(r) > v).length + 1;
+}
+
+// ───────────── Районы ─────────────
+// Для районов доступны только население (оценка), площадь и плотность.
+
+export type DistrictMetricKey = 'population' | 'density' | 'area';
+
+export interface DistrictMetric extends Omit<Metric, 'key' | 'value' | 'country' | 'skipCity'> {
+  key: DistrictMetricKey;
+  value: (d: District) => number;
+}
+
+export const DISTRICT_METRICS: DistrictMetric[] = [
+  { ...METRIC_BY_KEY.population, key: 'population', value: (d) => d.population, log: true },
+  { ...METRIC_BY_KEY.density, key: 'density', value: density, log: true },
+  { ...METRIC_BY_KEY.area, key: 'area', value: (d) => d.area, log: false },
+];
+
+export const DISTRICT_METRIC_BY_KEY = Object.fromEntries(DISTRICT_METRICS.map((m) => [m.key, m])) as Record<
+  DistrictMetricKey,
+  DistrictMetric
+>;
+
+export const isDistrictMetric = (key: MetricKey | null): key is DistrictMetricKey =>
+  key !== null && key in DISTRICT_METRIC_BY_KEY;
+
+const districtScales = new Map<DistrictMetricKey, ReturnType<typeof makeScale>>();
+export function districtNormalizer(m: DistrictMetric) {
+  let s = districtScales.get(m.key);
+  if (!s) {
+    s = makeScale(DISTRICTS.map(m.value), m.log);
+    districtScales.set(m.key, s);
+  }
+  return s;
+}
+
+export function districtRank(m: DistrictMetric, d: District): number {
+  const v = m.value(d);
+  return DISTRICTS.filter((x) => m.value(x) > v).length + 1;
 }

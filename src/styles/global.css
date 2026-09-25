@@ -152,10 +152,19 @@ p {
 }
 
 /* ───────────── Раскладка ───────────── */
+/* Весь интерфейс на 20% мельче (на телефонах — на 10%, чтобы не мельчить тач-цели).
+   Размеры в стилях заданы в px, поэтому масштабируем контейнер целиком. */
 .app {
+  --zoom: 0.9;
+  zoom: var(--zoom);
   max-width: 1480px;
   margin: 0 auto;
   padding: 20px 24px 28px;
+}
+@media (min-width: 600px) {
+  .app {
+    --zoom: 0.8;
+  }
 }
 
 .header {
@@ -251,6 +260,11 @@ p {
 .segmented button span:not(.segmented-bg) {
   position: relative;
 }
+.segmented-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .segmented-bg {
   position: absolute;
   inset: 0;
@@ -274,6 +288,16 @@ p {
 .side {
   position: relative;
   min-height: 560px;
+  /* высоту задаёт панель карты, а не длинный список районов */
+  contain: size;
+}
+
+.map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
 .footer {
@@ -336,6 +360,18 @@ p {
 .chip-label {
   position: relative;
 }
+.chip:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.chip:disabled:hover {
+  color: var(--text-2);
+}
+.switcher-note {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+}
 
 /* ───────────── Карта ───────────── */
 .map-wrap {
@@ -345,7 +381,8 @@ p {
   display: block;
   width: 100%;
   height: auto;
-  max-height: calc(100vh - 230px);
+  /* vh внутри zoom тоже масштабируется — компенсируем */
+  max-height: calc(100vh / var(--zoom) - 260px);
   min-height: 320px;
   overflow: hidden;
   touch-action: manipulation;
@@ -362,6 +399,63 @@ p {
   vector-effect: non-scaling-stroke;
   cursor: pointer;
   outline: none;
+}
+.district {
+  stroke: var(--stroke);
+  stroke-width: 0.7;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+  outline: none;
+  transition: fill 0.6s ease, fill-opacity 0.3s ease;
+}
+.district:focus-visible {
+  stroke: var(--focus);
+  stroke-width: 2;
+}
+.region-border {
+  fill: none;
+  stroke: var(--stroke);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.district-border {
+  fill: none;
+  stroke: var(--stroke);
+  stroke-width: 0.8;
+  stroke-opacity: 0.85;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.map-relief .region,
+.map-relief .region-border {
+  stroke: rgba(20, 22, 28, 0.55);
+}
+.map-relief .district,
+.map-relief .district-border {
+  stroke: rgba(20, 22, 28, 0.35);
+}
+:root[data-theme='dark'] .relief-img {
+  filter: brightness(0.72) saturate(0.85);
+}
+:root[data-theme='dark'] .map-relief .region,
+:root[data-theme='dark'] .map-relief .region-border {
+  stroke: rgba(255, 255, 255, 0.45);
+}
+:root[data-theme='dark'] .map-relief .district,
+:root[data-theme='dark'] .map-relief .district-border {
+  stroke: rgba(255, 255, 255, 0.22);
+}
+.relief-marker {
+  stroke: #fff;
+  stroke-linejoin: round;
+}
+.relief-high {
+  fill: #7a3b22;
+}
+.relief-low {
+  fill: #2f6f8f;
 }
 .region-focus {
   stroke: var(--text);
@@ -440,6 +534,11 @@ p {
   font-weight: 600;
   margin-bottom: 3px;
 }
+.tooltip-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  margin: -2px 0 3px 26px;
+}
 .tooltip-value {
   color: var(--text-2);
 }
@@ -467,6 +566,9 @@ p {
 .legend-end {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+}
+.legend-note-wide {
+  text-transform: none;
 }
 .legend-note {
   padding: 2px 6px;
@@ -576,6 +678,71 @@ p {
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+.ranking-title .badge {
+  font-family: var(--font);
+  font-weight: 600;
+}
+.region-filter {
+  display: flex;
+  gap: 5px;
+  margin: -4px 0 10px;
+  flex-wrap: wrap;
+}
+.filter-chip {
+  display: inline-grid;
+  place-items: center;
+  min-width: 36px;
+  height: 34px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--chip);
+  border: 1px solid var(--glass-border);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  opacity: 0.75;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+.filter-all {
+  padding: 0 11px;
+}
+.filter-chip:hover {
+  opacity: 1;
+}
+.filter-chip.on {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--text) 45%, transparent);
+  background: var(--track);
+  color: var(--text);
+}
+.ranking-districts .ranking-list {
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: thin;
+  padding-right: 4px;
+}
+.rank-row-compact .rank-btn {
+  padding: 7px 10px;
+  gap: 10px;
+}
+.rank-row-compact .rank-main {
+  gap: 5px;
+}
+.rank-row-compact .rank-name {
+  font-size: 13px;
+  gap: 7px;
+}
+.rank-row-compact .rank-value {
+  font-size: 13px;
+}
+.rank-row-compact .rank-pos {
+  font-size: 13px;
+}
+.rank-row-selected {
+  background: var(--track);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 30%, transparent);
 }
 .insights {
   margin-top: auto;
@@ -911,6 +1078,81 @@ p {
   padding-top: 4px;
 }
 
+.stats-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.stats-3 .stat {
+  min-width: 0;
+  padding: 10px;
+}
+.stats-3 .stat-label {
+  font-size: 11.5px;
+}
+.stats-3 .stat-value {
+  font-size: 16px;
+  white-space: normal;
+  line-height: 1.25;
+}
+.stats-3 .stat-value small {
+  display: block;
+  font-size: 11px;
+}
+.stats-3 .badge {
+  align-self: flex-start;
+}
+.approx {
+  color: var(--text-3);
+  font-weight: 500;
+}
+.card-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+.card-note svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--text-3);
+}
+.card-note-muted {
+  color: var(--text-3);
+  margin-top: 14px;
+}
+.card-district .share {
+  margin-top: 0;
+}
+.link-btn {
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--text-2);
+  text-decoration: underline;
+  text-decoration-color: var(--glass-border);
+  text-underline-offset: 3px;
+}
+.link-btn:hover {
+  color: var(--text);
+}
+.tag-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.tag-btn:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 35%, transparent);
+}
+.card-district .card-source {
+  margin-top: 16px;
+}
+
 .grabber,
 .sheet-scrim {
   display: none;
@@ -943,6 +1185,10 @@ p {
   }
   .side {
     min-height: 0;
+    contain: none;
+  }
+  .ranking-districts .ranking-list {
+    max-height: 60vh;
   }
   .ranking {
     height: auto;
@@ -1006,6 +1252,9 @@ p {
 }
 
 @media (max-width: 520px) {
+  .legend-note-wide {
+    display: none;
+  }
   .brand-title {
     font-size: 21px;
   }
@@ -1021,6 +1270,9 @@ p {
   }
   .stats {
     gap: 8px;
+  }
+  .stats-3 {
+    grid-template-columns: 1fr 1fr;
   }
   .stat-value {
     font-size: 16px;
